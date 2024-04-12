@@ -1,0 +1,47 @@
+services:
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    ports:
+      - "9000:9000"
+    restart: always
+
+  mariadb:
+    image: mariadb:10
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: dockertp
+      MYSQL_DATABASE: docker_tp
+    restart: always
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: mariadb
+      MYSQL_ROOT_PASSWORD: dockertp
+    ports:
+      - "8080:80"
+    restart: always
+
+  php:
+    build:
+      context: ./php
+    container_name: php
+    volumes:
+      - ./app:/srv/app
+    restart: always
+    depends_on:
+      - mariadb
+
+  caddy:
+    image: caddy
+    container_name: caddy
+    volumes:
+      - ./app:/srv/app
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - "80:80"
+    restart: always
+    depends_on:
+      - php
